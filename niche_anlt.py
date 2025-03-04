@@ -1,32 +1,30 @@
 import pandas as pd
 import ast
 
+# change df path according to that of df saved after running niche_crawler script
 df = pd.read_csv('../../Downloads/colleges_df - colleges_df.csv')
 
 ## Preprocessing
-# Define a function to convert stringified dictionaries into actual dictionaries
+# define a function to convert stringified dictionaries into actual dictionaries
 def string_to_dict(dict_string):
-    # Convert to proper dictionary if it's a string representation of a dictionary
+    # convert to proper dictionary if it's a string representation of a dictionary
     try:
         return ast.literal_eval(dict_string)
     except ValueError:
         return {}
 
-# Apply the function to the relevant columns
+# apply the function to the relevant columns
 df['niche_report_card'] = df['niche_report_card'].apply(string_to_dict)
 df['after_college'] = df['after_college'].apply(string_to_dict)
 
-# Normalize the nested dictionaries into separate columns
+# normalize the nested dictionaries into separate columns
 df_niche_report_card = df['niche_report_card'].apply(pd.Series)
 df_after_college = df['after_college'].apply(pd.Series)
 
-# Join the new columns with the main dataframe
+# join the new columns with the main dataframe
 df_preprocessed = df.join([df_niche_report_card, df_after_college]).drop(columns=['niche_report_card', 'after_college'])
 
-# Display the first few rows of the preprocessed dataframe
-#print(df_preprocessed.head())
-
-# Ensure that numeric data is actually numeric
+# ensure that numeric data is actually numeric
 df_preprocessed['median_earning_6_years'] = df_preprocessed['median_earning_6_years'].replace('[\$,]', '', regex=True).astype(float)
 df_preprocessed['graduation_rate'] = df_preprocessed['graduation_rate'].str.rstrip('%').astype(float) / 100.0
 df_preprocessed['employment_rate'] = df_preprocessed['employment_rate'].str.rstrip('%').astype(float) / 100.0
@@ -49,20 +47,20 @@ def plot_to_uri(plt):
     return f"data:image/png;base64,{uri}"
 
 
-# Top 5 w highest median earnings
+# top 5 w highest median earnings
 top_median_earnings = df_preprocessed.sort_values(by='median_earning_6_years', ascending=False).head(5)
 
-# Top 5 w highest employment rate
+# top 5 w highest employment rate
 top_employment_rate = df_preprocessed.sort_values(by='employment_rate', ascending=False).head(5)
 
-# Top 5 w highest graduation rate
+# top 5 w highest graduation rate
 top_graduation_rate = df_preprocessed.sort_values(by='graduation_rate', ascending=False).head(5)
 
-# Top 5 w highest confidence levels
+# top 5 w highest confidence levels
 df_preprocessed['confidence_level_responses'] = df_preprocessed['confidence_level_responses'].astype(int)
 top_confidence_level = df_preprocessed[df_preprocessed['confidence_level_responses'] >= 15].sort_values(by='confidence_level_percent', ascending=False).head(5)
 
-# Colleges w lower grades for 'Value'
+# colleges w lower grades for 'Value'
 non_A_plus_value = df_preprocessed[(df_preprocessed['Value'] != 'A+') & (df_preprocessed['Value'] != 'A')]
 
 
@@ -73,7 +71,7 @@ def generate_median_earnings_plot(df_preprocessed):
     plt.title('Median Earnings After 6 Years by College')
     plt.xlabel('Median Earnings ($)')
     plt.ylabel('College')
-    # Convert plot to URI and return
+    # convert plot to URI and return
     return plot_to_uri(plt)
 
 # 2. Scatter plot: Median Earnings vs graduation rate
@@ -87,7 +85,6 @@ def generate_median_earnings_trend(df_preprocessed):
     plt.xlim(0.75, 1)
     plt.ylabel('Median Earnings')
     plt.ylim(40000, 120000)
-    #plt.show()
     return plot_to_uri(plt)
 
 # 3. Pie Chart: Distribution of 'Value' ratings among the colleges
@@ -116,9 +113,7 @@ def generate_employment_rate_boxplot(df_preprocessed):
     plt.ylim(0.8, 1)
     return plot_to_uri(plt)
 
-
-print("\n", "Colleges with the best post-graduation metrics:")
-# Combine the college names from all lists into one Series
+# combine the college names from all lists into one Series
 all_colleges = pd.concat([
     top_median_earnings['College name'],
     top_employment_rate['College name'],
@@ -126,24 +121,22 @@ all_colleges = pd.concat([
     top_confidence_level['College name']
 ])
 
-# Count the frequency of each college name
+# count the frequency of each college name
 college_counts = all_colleges.value_counts()
 
-# Get the top 3 most frequent college names
+# get the top 3 most frequent college names
 top_3_colleges = college_counts.head(3)
 
-print(top_3_colleges.index.tolist())
-
-# Implement similar functions for the other plots: generate_median_earnings_trend, generate_niche_value_ratings, etc.
-def analyze_colleges():#df_preprocessed, top_median_earnings, top_employment_rate, top_graduation_rate,top_confidence_level, non_A_plus_value, top_5_colleges):
-    # Generate plots and convert to URIs
+# function to group all results and plots
+def analyze_colleges():
+    # generate plots and convert to URIs
     med_earnings_uri = generate_median_earnings_plot(top_median_earnings)
     med_earnings_gr_uri = generate_median_earnings_trend(df_preprocessed)
     value_dist_uri = generate_niche_value_ratings(df_preprocessed)
     confidence_hist_uri = generate_confidence_level_distribution(df_preprocessed)
     box_plot_uri = generate_employment_rate_boxplot(df_preprocessed)
 
-    # Incorporate the plots into the analysis_results dictionary with other analyses
+    # incorporate the plots into the analysis_results dictionary with other analyses
     analysis_results = {
         "top_median_earnings": top_median_earnings[["College name", "median_earning_6_years"]].to_html(escape=False),
         "top_employment_rate": top_employment_rate[["College name", "employment_rate"]].to_html(escape=False),

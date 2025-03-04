@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -7,15 +7,13 @@ import os
 from map import get_location
 from api import get_postgrad_stats, read_item
 from niche_anlt import analyze_colleges
-# from niche_crawler import ...
 
 app = FastAPI()
-#router = APIRouter()
 app.mount("/static", StaticFiles(directory="/Users/mubi/code/dataWrangling"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
-    # This function serves the homepage
+    # this function serves the homepage
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -32,19 +30,39 @@ async def home():
         </script>
         <style>
             .image-caption {
-                font-size: small; 
+                font-size: medium; 
+            }
+            .explore-heading {
+                font-size: 1.2em; /* Slightly larger */
+            }
+            .author {
+                font-style: italic;
+                font-size: 0.9em;
+                color: #555;
+            }
+            .footer {
+                font-size: 0.9em;
+                text-align: center;
+                margin-top: 30px;
+                padding: 10px;
+                color: #666;
+                border-top: 1px solid #ddd;
             }
         </style>
     </head>
     <body>
-        <h1>Learn more to earn more!</h1>
+        <h1>College Information Platform</h1>
+        <p class="author">Mubtasim H Talha</p>
+
         <figure>
             <img src="/static/college_earner.jpeg" alt="Graduation Cap on Coins" style="width:100%;max-width:600px;height:auto;">
             <figcaption class="image-caption">Image source: <a href="https://bachelors-completion.northeastern.edu/news/average-salary-by-education-level/">Northeastern University</a></figcaption>
         </figure>
-        <p>Explore our features:</p>
+
+        <h2>Lesson from analytics: Learn more to earn more!</h2>
+        <p class="explore-heading">Explore the following features for elaboration:</p>
         <ul>
-            <li><h2><a href="/postgrad-stats/">View Post-graduation Statistics</a></h2></li>
+            <li><h3><a href="/postgrad-stats/">View Post-graduation Statistics</a></h3></li>
             <li>
                 <h3>View College Locations</h3>
                 <form onsubmit="return redirectToMap()">
@@ -53,9 +71,13 @@ async def home():
                     <button type="submit">View Map</button>
                 </form>
             </li>
-            <li><h4><a href="/college-analytics/">View Niche's Top 50 Colleges Ranked By Post-graduation Statistics</a></h4></li>
-            <li><h5><a href="/code-snippet/">View Code Snippets</a></h5></li>
+            <li><h3><a href="/college-analytics/">View Niche's Top 50 Colleges Ranked By Post-graduation Statistics</a></h3></li>
+            <li><h3><a href="/code-snippet/">View Code Snippets</a></h3></li>
         </ul>
+
+        <div class="footer">
+            Developed for UOP's Data Wrangling course project
+        </div>
     </body>
     </html>
     """
@@ -75,12 +97,9 @@ async def display_map(school_name: str):
 
 @app.get("/college-analytics/", response_class=HTMLResponse)
 async def college_analytics():
-    #df_preprocessed, top_median_earnings, top_employment_rate, top_graduation_rate, top_confidence_level, non_A_plus_value, top_5_colleges = prepare_data()
+    analysis_results = analyze_colleges()
 
-    analysis_results = analyze_colleges()#df_preprocessed, top_median_earnings, top_employment_rate, top_graduation_rate,
-                                        #top_confidence_level, non_A_plus_value, top_5_colleges)
-
-    # Build HTML content from analysis_results
+    # build html content from analysis_results
     content = "<h1>Analytics of Top 50 Colleges</h1>"
     content += "Info gathered from: Niche.com<br><br>Niche.com provides a platform that helps users analyze ratings and reviews of schools, colleges, and neighborhoods by producing rankings, report cards, and profiles"
     content += "<br><br>Niche's homepage: https://www.niche.com/"
@@ -91,13 +110,15 @@ async def college_analytics():
 
 @app.get("/code-snippet/", response_class=HTMLResponse)
 async def show_code_snippet():
-    # Assuming 'niche_crawler.py' is in the current directory
+    # ensure 'niche_crawler.py' is in current dir
     file_path = os.path.join(os.getcwd(), 'niche_crawler.py')
     with open(file_path, 'r') as file:
         code_content = file.read()
 
-    # Convert the code content to HTML safe content
-    code_html = f"<pre><code>{code_content}</code></pre>"
+    # convert the code content to html safe content
+    code_html = f"""
+    <pre><code class="language-python">{code_content}</code></pre>
+    """
 
     return f"""
     <!DOCTYPE html>
@@ -106,18 +127,27 @@ async def show_code_snippet():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Code Snippet</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script>
         <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                padding: 20px;
+                background-color: #f8f9fa;
+            }}
             pre {{
-                background-color: #f5f5f5;
-                border: 1px solid #ccc;
+                padding: 15px;
                 border-radius: 5px;
-                padding: 10px;
                 overflow: auto;
-                width: auto;
-                line-height: 1.5;
+                font-size: 1.1em;
             }}
             code {{
-                font-family: 'Courier New', Courier, monospace;
+                font-size: 1.1em;
+            }}
+            .hljs-comment {{
+                color: #5DADE2 !important; /* light blue for comments */
             }}
         </style>
     </head>

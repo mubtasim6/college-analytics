@@ -1,9 +1,8 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
 import requests
 import logging
 
-# Html code generated with help of ChatGPT
+# html code generated with help of ChatGPT
 def read_item():
     """
     Serve the HTML page.
@@ -84,26 +83,26 @@ def get_postgrad_stats(school_name: str):
     """
     params = {
         'api_key': API_KEY,
-        'school.name': school_name,  # Use the original case for better matching
+        'school.name': school_name,
         'fields': 'id,school.name,school.state,latest.earnings.10_yrs_after_entry.median,'
                   'latest.repayment.3_yr_repayment_suppressed.overall,'
                   'latest.completion.rate_suppressed.four_year_150nt',
-        'per_page': 100,  # Adjust based on how many results you want per page
+        'per_page': 100,  # adjust based on how many results you want per page
     }
     try:
         response = requests.get(COLLEGE_SCORECARD_BASE_URL, params=params)
-        response.raise_for_status()  # Raises HTTPError for 4xx/5xx errors
+        response.raise_for_status()  # raises HTTPError for 4xx/5xx errors
         data = response.json()
         logging.info(f"API Response: {response.text}")
 
-        # Process and return the results
+        # process and return the results
         colleges = []
         for result in data.get("results", []):
             loan_repayment = result.get("latest.repayment.3_yr_repayment_suppressed.overall")
-            loan_repayment_rate = "Data not available"  # Default text if data is not available
+            loan_repayment_rate = "Data not available"  # default text if data is not available
             if loan_repayment is not None:
                 loan_repayment = float(loan_repayment)*100 # x100 to convert value into %
-                # Format the loan repayment rate to 3 significant figures with a percentage sign
+                # format the loan repayment rate to 3 significant figures with a percentage sign
                 loan_repayment_rate = f"{loan_repayment:.3g}%"
 
             colleges.append({

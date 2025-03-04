@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
 import requests
 import logging
 import folium
